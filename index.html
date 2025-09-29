@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visor STL — IBERO</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Import map para Three.js y addons -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo-ibero.png" alt="IBERO" class="logo" />
+      <h1>Visor STL</h1>
+    </div>
+    <div class="actions">
+      <label class="btn" for="file">Cargar STL</label>
+      <input id="file" class="file" type="file" accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" />
+      <label class="chk"><input type="checkbox" id="chkHeadlight"> Luz</label>
+      <label class="chk"><input type="checkbox" id="chkCenterLoad"> Centrar</label>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="viewer">
+      <div class="hintbar">Rotar: botón izq. • Zoom: rueda • Pan: botón der./Ctrl+izq.</div>
+    </section>
+    <aside id="stats">
+      <div class="dropzone" id="drop">Suelta aquí tu archivo <b>.stl</b> o usa el botón “Cargar STL”.</div>
+      <dl class="kv">
+        <dt>Nombre del archivo</dt><dd id="fName">—</dd>
+        <dt>Tamaño</dt><dd id="fSize">—</dd>
+        <dt>Número de triángulos</dt><dd id="fTris">—</dd>
+        <dt>Dimensiones (mm) [W x H x D]</dt><dd id="fDims">—</dd>
+        <dt>Centro geométrico (mm)</dt><dd id="fCenter">—</dd>
+      </dl>
+
+      <div class="controls-block">
+        <h2>Rotación</h2>
+        <div class="row between">
+          <label class="small">Paso (°): <input id="degStep" type="number" value="15" min="1" max="90"></label>
+          <button class="btn" id="btnResetRot">Reiniciar rotación</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">X:</span>
+          <button class="btn" id="rotXm">-X</button>
+          <button class="btn" id="rotXp">+X</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">Y:</span>
+          <button class="btn" id="rotYm">-Y</button>
+          <button class="btn" id="rotYp">+Y</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">Z:</span>
+          <button class="btn" id="rotZm">-Z</button>
+          <button class="btn" id="rotZp">+Z</button>
+        </div>
+      </div>
+
+      <div class="controls-block">
+        <h2>Traslación</h2>
+        <div class="row between">
+          <label class="small">Paso (mm): <input id="mmStep" type="number" value="10" step="1"></label>
+          <button class="btn" id="btnResetPos">Reiniciar posición</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">X:</span>
+          <button class="btn" id="movXm">-X</button>
+          <button class="btn" id="movXp">+X</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">Y:</span>
+          <button class="btn" id="movYm">-Y</button>
+          <button class="btn" id="movYp">+Y</button>
+        </div>
+        <div class="row wrap">
+          <span class="axis">Z:</span>
+          <button class="btn" id="movZm">-Z</button>
+          <button class="btn" id="movZp">+Z</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btnSave">Guardar STL</button>
+      </div>
+
+      <p class="note">STL no define unidades; aquí se asume <b>mm</b>. Si tu modelo está en otras unidades, reescálalo al exportar.</p>
+    </aside>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
