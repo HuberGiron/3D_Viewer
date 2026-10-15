@@ -1,7 +1,7 @@
 # Visor 3D — IBERO
 
 Visor y optimizador de archivos STL binarios o ASCII. Funciona como sitio estático,
-sin backend, instalación ni subida de modelos a servidores. Incluye sus dependencias
+sin backend ni subida de modelos a servidores, con instalación PWA opcional. Incluye sus dependencias
 locales y se puede alojar en GitHub Pages, Nginx o un servidor HTTP de Python.
 
 ## Ejecutar
@@ -13,8 +13,57 @@ python -m http.server 8080
 Abrir http://localhost:8080. No abrir `index.html` mediante `file://`: los módulos,
 workers y WebAssembly necesitan HTTP/HTTPS. `index2.html` redirige al visor actualizado.
 Para desplegar, subir **todos** los archivos, incluyendo `vendor/`, `mesh-utils.js`
-y `mesh-worker.js`. El servidor debe permitir JavaScript y WebAssembly del mismo
+y `mesh-worker.js`, el manifiesto, los iconos y los archivos PWA. El servidor debe permitir JavaScript y WebAssembly del mismo
 origen; no se requieren COOP/COEP, SharedArrayBuffer ni servicios externos.
+
+## Instalar en Android y recibir STL
+
+1. Publicar esta versión completa mediante HTTPS (GitHub Pages ya lo proporciona).
+2. En el teléfono, abrir la URL en **Chrome**, fuera del navegador integrado de WhatsApp u otra aplicación.
+3. Esperar a que el panel indique **Listo sin conexión** y pulsar **Instalar app**.
+   También se puede usar el menú ⋮ de Chrome → **Agregar a la pantalla principal → Instalar**.
+   El nombre de la opción cambia entre versiones. Debe instalarse como aplicación;
+   un simple acceso directo no registra el destino de Compartir.
+4. Cuando Chrome termine la instalación, seleccionar un STL en la aplicación de
+   origen o en Archivos y elegir **Compartir → Visor 3D IBERO**.
+   El visor recibe el archivo y lo carga automáticamente.
+5. Si la aplicación de origen no entrega el archivo o no permite compartirlo,
+   guardarlo en Descargas y usar **Cargar STL** dentro del visor.
+
+La integración Android usa **Compartir**, no la asociación **Abrir con** de una app
+nativa. Instalar la PWA no cambia las restricciones de descarga de la aplicación
+de origen. Acepta un STL por envío, incluyendo el MIME genérico
+`application/octet-stream` que usan algunos mensajeros, pero siempre valida la
+extensión y después el contenido STL. Las entregas vacías, múltiples o de otro tipo
+producen un mensaje con la alternativa de carga manual.
+
+El manifiesto usa rutas relativas: funciona bajo `/3D_Viewer/` o en otra subcarpeta.
+`share-target` es una ruta virtual interceptada mediante el service worker: no hace
+falta PHP, FastAPI ni soporte POST en el servidor. El cuerpo se consume en el
+dispositivo y no se reenvía al alojamiento. IndexedDB conserva temporalmente el
+archivo compartido hasta que la página lo recupera; la recuperación es de un solo
+uso, elimina el registro y las entregas sin recuperar caducan después de una hora
+(se purgan al compartir de nuevo). No es un historial de modelos ni una copia de seguridad.
+
+## Sin conexión y actualizaciones
+
+La primera carga con internet almacena la interfaz, los workers, Three.js y el
+simplificador WASM. Después se puede cargar, simplificar y exportar archivos
+locales sin conexión, incluso desde Compartir. El navegador puede borrar el
+almacenamiento local; si sucede, volver a abrir el visor con internet.
+
+Cuando hay una actualización, el visor muestra **Actualizar app y recargar**.
+Guardar el modelo antes de pulsarlo: recargar descarta el trabajo actual. No se
+activa una nueva versión mientras hay una operación en curso ni se recarga
+automáticamente al detectar cambios. Al desplegar una modificación en cualquiera
+de los archivos de `SHELL`, incrementar `VERSION` en `sw.js`. La caché incluye la
+ruta de la app y solo se eliminan versiones anteriores de ese mismo visor.
+
+Validación automatizada en Chromium: elegibilidad de instalación, iconos, recepción
+multipart real sin conexión, recuperación de un solo uso, datos inválidos, WASM
+sin conexión y activación explícita de actualizaciones. La generación del WebAPK
+y el selector Compartir de Android requieren comprobarse en un teléfono real;
+una emulación móvil de escritorio no los valida.
 
 ## Inspeccionar y transformar
 
@@ -87,6 +136,9 @@ styles.css                  Interfaz adaptable a escritorio y móvil
 app.js                      Escena, cámara, interfaz y gestión de trabajos
 mesh-worker.js              Carga, optimización y exportación en segundo plano
 mesh-utils.js               Geometría binaria, validación y unión de vértices
+manifest.webmanifest        Instalación, iconos y destino de Compartir
+sw.js                       Caché sin conexión y recepción local del POST compartido
+pwa.js / share-store.js      Instalación, actualizaciones y entrega temporal de STL
 vendor/three/               Three.js 0.160.0 y addons locales
 vendor/fast-quadric/         Runtime JS, WASM, procedencia y licencias
 assets/                     Identidad IBERO
@@ -107,6 +159,7 @@ Prueba integral opcional en Chromium (requiere Python y Playwright solo para des
 npm install --no-save playwright
 npx playwright install chromium
 node tests/browser-smoke.mjs
+node tests/pwa-smoke.mjs
 ```
 
 Verifica también la reducción de un STL sintético de 819,200 triángulos (40,960,084 bytes),

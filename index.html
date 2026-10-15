@@ -6,6 +6,8 @@
     <meta name="theme-color" content="#101722" />
     <title>Visor 3D — IBERO</title>
     <link rel="icon" href="favicon.ico" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/app-icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
     <script type="importmap">
       {
@@ -94,6 +96,21 @@
           <span class="eyebrow">ESPACIO DE TRABAJO</span
           ><span class="badge">STL</span>
         </div>
+        <section class="pwa-card" aria-label="Instalar visor">
+          <div class="row between">
+            <strong id="pwaTitle">Lleva el visor a tu teléfono</strong>
+            <button id="btnInstall" class="btn">Instalar app</button>
+          </div>
+          <p id="pwaStatus" class="note" role="status">
+            Preparando uso sin conexión…
+          </p>
+          <button id="btnInstallHelp" class="text-button">
+            Cómo abrir STL desde otras apps
+          </button>
+          <button id="btnUpdateApp" class="btn wide" hidden>
+            Actualizar app y recargar
+          </button>
+        </section>
         <div id="drop" class="dropzone">
           Arrastra tu archivo aquí o sobre el visor
         </div>
@@ -281,6 +298,46 @@
         </footer>
       </aside>
     </main>
+    <dialog id="installHelp" aria-labelledby="installHelpTitle">
+      <form method="dialog">
+        <button class="tool dialog-close" aria-label="Cerrar ayuda">✕</button>
+      </form>
+      <h2 id="installHelpTitle">Instala Visor 3D IBERO en Android</h2>
+      <ol>
+        <li>
+          Abre esta página en <strong>Chrome</strong>, con conexión a internet.
+        </li>
+        <li>
+          Pulsa <strong>Instalar app</strong>. Si no aparece el aviso, usa el
+          menú ⋮ de Chrome →
+          <strong>Agregar a la pantalla principal → Instalar</strong>. El texto
+          puede variar según la versión.
+        </li>
+        <li>
+          Cuando recibas un STL, selecciona
+          <strong>Compartir → Visor 3D IBERO</strong> desde la aplicación de
+          origen o desde Archivos.
+        </li>
+      </ol>
+      <p>
+        La instalación debe ser como aplicación, no solamente como acceso
+        directo. Si el visor no aparece de inmediato en Compartir, espera a que
+        Chrome termine la instalación y vuelve a intentarlo.
+      </p>
+      <p>
+        Si la aplicación de origen no permite compartir el STL, guárdalo en
+        Descargas, abre el visor y pulsa <strong>Cargar STL</strong>.
+      </p>
+      <p class="note">
+        Android no registra esta PWA en “Abrir con” para archivos STL. La
+        integración se hace mediante “Compartir”. Los modelos se procesan en tu
+        dispositivo. Tras preparar el modo sin conexión, también puedes usar el
+        visor sin internet.
+      </p>
+      <form method="dialog">
+        <button class="btn primary wide">Entendido</button>
+      </form>
+    </dialog>
     <script type="module" src="app.js"></script>
   </body>
 </html>
