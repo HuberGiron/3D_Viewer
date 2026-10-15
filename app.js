@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { triangleCount, binarySTLSize } from "./mesh-utils.js";
+import { setupPWA } from "./pwa.js";
 
 const $ = (id) => document.getElementById(id);
 const viewer = $("viewer");
@@ -552,3 +553,4 @@ window.addEventListener("beforeunload", () => {
 });
 updateUI();
 invalidate();
+setupPWA({ onFile: loadFile, onStatus: status, canReload: () => !activeJob });
