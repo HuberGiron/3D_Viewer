@@ -1,103 +1,273 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Visor STL — IBERO</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <!-- Import map para Three.js y addons -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <img src="assets/logo-ibero.png" alt="IBERO" class="logo" />
-      <h1>Visor STL</h1>
-    </div>
-    <div class="actions">
-      <label class="btn" for="file">Cargar STL</label>
-      <input id="file" class="file" type="file" accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" />
-      <label class="chk"><input type="checkbox" id="chkHeadlight"> Luz</label>
-      <label class="chk"><input type="checkbox" id="chkCenterLoad"> Centrar</label>
-    </div>
-  </header>
-
-  <main class="container">
-    <section id="viewer">
-      <div class="hintbar">Rotar: botón izq. • Zoom: rueda • Pan: botón der./Ctrl+izq.</div>
-    </section>
-    <aside id="stats">
-      <div class="dropzone" id="drop">Suelta aquí tu archivo <b>.stl</b> o usa el botón “Cargar STL”.</div>
-      <dl class="kv">
-        <dt>Nombre del archivo</dt><dd id="fName">—</dd>
-        <dt>Tamaño</dt><dd id="fSize">—</dd>
-        <dt>Número de triángulos</dt><dd id="fTris">—</dd>
-        <dt>Dimensiones (mm) [W x H x D]</dt><dd id="fDims">—</dd>
-        <dt>Centro geométrico (mm)</dt><dd id="fCenter">—</dd>
-      </dl>
-
-      <div class="controls-block">
-        <h2>Rotación</h2>
-        <div class="row between">
-          <label class="small">Paso (°): <input id="degStep" type="number" value="15" min="1" max="90"></label>
-          <button class="btn" id="btnResetRot">Reiniciar rotación</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">X:</span>
-          <button class="btn" id="rotXm">-X</button>
-          <button class="btn" id="rotXp">+X</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">Y:</span>
-          <button class="btn" id="rotYm">-Y</button>
-          <button class="btn" id="rotYp">+Y</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">Z:</span>
-          <button class="btn" id="rotZm">-Z</button>
-          <button class="btn" id="rotZp">+Z</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101722" />
+    <title>Visor 3D — IBERO</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img src="assets/logo-ibero.png" alt="IBERO" /><span
+          class="brand-divider"
+        ></span>
+        <div>
+          <h1>Visor 3D</h1>
+          <span class="eyebrow">EXPLORA · OPTIMIZA · FABRICA</span>
         </div>
       </div>
-
-      <div class="controls-block">
-        <h2>Traslación</h2>
-        <div class="row between">
-          <label class="small">Paso (mm): <input id="mmStep" type="number" value="10" step="1"></label>
-          <button class="btn" id="btnResetPos">Reiniciar posición</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">X:</span>
-          <button class="btn" id="movXm">-X</button>
-          <button class="btn" id="movXp">+X</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">Y:</span>
-          <button class="btn" id="movYm">-Y</button>
-          <button class="btn" id="movYp">+Y</button>
-        </div>
-        <div class="row wrap">
-          <span class="axis">Z:</span>
-          <button class="btn" id="movZm">-Z</button>
-          <button class="btn" id="movZp">+Z</button>
-        </div>
+      <div class="actions">
+        <span class="local-badge">● Procesamiento local</span
+        ><button id="btnDemo" class="btn">Abrir ejemplo</button
+        ><button id="btnOpen" class="btn primary">Cargar STL ↗</button
+        ><input id="file" type="file" accept=".stl" hidden />
       </div>
-
-      <div class="row">
-        <button class="btn primary" id="btnSave">Guardar STL</button>
-      </div>
-
-      <p class="note">STL no define unidades; aquí se asume <b>mm</b>. Si tu modelo está en otras unidades, reescálalo al exportar.</p>
-    </aside>
-  </main>
-
-  <script type="module" src="app.js"></script>
-</body>
+    </header>
+    <main class="container">
+      <section id="viewer" aria-label="Vista del modelo 3D">
+        <div class="viewer-top">
+          <span class="badge" id="viewLabel">PERSPECTIVA</span>
+          <div class="toolbar" aria-label="Vistas de cámara">
+            <button id="btnFit" class="tool" title="Encuadrar (F)">
+              Encuadrar</button
+            ><button data-view="iso" class="tool">3D</button
+            ><button data-view="front" class="tool">Frente</button
+            ><button data-view="top" class="tool">Superior</button
+            ><button data-view="right" class="tool">Derecha</button
+            ><button id="btnFullscreen" class="tool" title="Pantalla completa">
+              ⛶
+            </button>
+          </div>
+        </div>
+        <div id="emptyState" class="empty-state">
+          <div class="model-mark" aria-hidden="true">◇</div>
+          <h2>Tu siguiente idea, en 3D.</h2>
+          <p>
+            Arrastra un STL para inspeccionarlo,<br />transformarlo y reducir
+            sus triángulos.
+          </p>
+          <button id="btnEmptyOpen" class="btn primary">
+            Seleccionar archivo</button
+          ><span>STL binario o ASCII · Unidades en mm</span>
+        </div>
+        <div class="viewer-bottom">
+          <span id="meshBadge" class="badge">SIN MODELO</span
+          ><span class="hintbar"
+            >Rotar: arrastrar · Zoom: rueda / pellizcar · Desplazar: botón
+            derecho</span
+          ><button id="btnCapture" class="tool" data-model disabled>
+            Captura PNG
+          </button>
+        </div>
+      </section>
+      <aside id="stats" aria-label="Herramientas del modelo">
+        <div class="panel-heading">
+          <span class="eyebrow">ESPACIO DE TRABAJO</span
+          ><span class="badge">STL</span>
+        </div>
+        <div id="drop" class="dropzone">
+          Arrastra tu archivo aquí o sobre el visor
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite">
+          Listo para cargar un modelo.
+        </p>
+        <div id="busy" class="busy" hidden>
+          <progress aria-label="Procesando modelo"></progress
+          ><button id="btnCancel" class="btn">Cancelar</button>
+        </div>
+        <div class="file-heading">
+          <h2 id="fName">Sin archivo</h2>
+          <span id="fSize">—</span>
+        </div>
+        <div class="metrics">
+          <div>
+            <span>Triángulos visibles</span><strong id="fTris">—</strong>
+          </div>
+          <div>
+            <span>STL binario estimado</span><strong id="fEstimate">—</strong>
+          </div>
+        </div>
+        <dl class="kv">
+          <dt>Dimensiones X × Y × Z (mm)</dt>
+          <dd id="fDims">—</dd>
+          <dt>Centro de la caja (mm)</dt>
+          <dd id="fCenter">—</dd>
+        </dl>
+        <section class="controls-block optimization">
+          <div class="section-title">
+            <h2>Reducir triángulos</h2>
+            <span class="accent-tag">FAST QUADRIC</span>
+          </div>
+          <p class="note">
+            Ajusta el objetivo y compara el resultado con el original antes de
+            guardarlo.
+          </p>
+          <fieldset id="optimizationControls" disabled>
+            <label for="reduction" class="row between"
+              ><span>Reducción solicitada</span
+              ><output id="reductionValue" for="reduction">50%</output></label
+            ><input
+              id="reduction"
+              type="range"
+              min="1"
+              max="95"
+              value="50"
+              step="1"
+            />
+            <div class="range-labels">
+              <span>Más detalle</span><span>Menor tamaño</span>
+            </div>
+            <label class="row between" for="targetTriangles"
+              >Triángulos objetivo
+              <input
+                id="targetTriangles"
+                type="number"
+                min="4"
+                step="1"
+                value="4"
+                required /></label
+            ><button id="btnSimplify" class="btn primary wide">
+              Optimizar modelo
+            </button>
+          </fieldset>
+          <div id="comparison" hidden>
+            <div
+              class="compare-tabs"
+              role="group"
+              aria-label="Comparar geometrías"
+            >
+              <button id="btnOriginal" class="btn" aria-pressed="false">
+                Original</button
+              ><button id="btnOptimized" class="btn active" aria-pressed="true">
+                Optimizado
+              </button>
+            </div>
+            <div class="result">
+              <strong id="reductionActual">—</strong
+              ><span id="reductionDetail"></span>
+            </div>
+            <div class="reduction-track"><div id="reductionBar"></div></div>
+            <button id="btnRestore" class="btn wide">Restaurar original</button>
+          </div>
+          <p class="note">
+            La simplificación modifica la geometría. Revisa detalles finos y
+            dimensiones; el objetivo puede no alcanzarse.
+          </p>
+        </section>
+        <details class="controls-block" open>
+          <summary>Visualización</summary>
+          <div class="options-grid">
+            <label
+              ><input id="chkHeadlight" type="checkbox" checked /> Luz de
+              cámara</label
+            ><label
+              ><input id="chkGrid" type="checkbox" checked /> Cuadrícula y
+              ejes</label
+            ><label
+              ><input id="chkWireframe" type="checkbox" /> Malla de
+              triángulos</label
+            ><label
+              ><input id="chkCenterLoad" type="checkbox" /> Centrar al
+              cargar</label
+            >
+          </div>
+          <div class="row between">
+            <label class="row" for="modelColor"
+              >Color
+              <input id="modelColor" type="color" value="#8dc9e5" /></label
+            ><label for="quality"
+              >Calidad
+              <select id="quality">
+                <option value="1">Ligera</option>
+                <option value="1.5" selected>Equilibrada</option>
+                <option value="2">Alta</option>
+              </select></label
+            >
+          </div>
+        </details>
+        <details class="controls-block">
+          <summary>Transformar modelo</summary>
+          <fieldset id="transformControls" disabled>
+            <div class="row between">
+              <h3>Rotación</h3>
+              <label
+                >Paso (°)
+                <input
+                  id="degStep"
+                  type="number"
+                  min="0.1"
+                  max="360"
+                  value="15"
+                  step="0.1"
+              /></label>
+            </div>
+            <div class="axis-buttons">
+              <span>X</span><button class="btn" data-rotate="x,-1">−X</button
+              ><button class="btn" data-rotate="x,1">+X</button><span>Y</span
+              ><button class="btn" data-rotate="y,-1">−Y</button
+              ><button class="btn" data-rotate="y,1">+Y</button><span>Z</span
+              ><button class="btn" data-rotate="z,-1">−Z</button
+              ><button class="btn" data-rotate="z,1">+Z</button>
+            </div>
+            <button class="btn wide" id="btnResetRot">
+              Reiniciar rotación
+            </button>
+            <div class="row between">
+              <h3>Traslación</h3>
+              <label
+                >Paso (mm)
+                <input
+                  id="mmStep"
+                  type="number"
+                  min="0.001"
+                  value="10"
+                  step="0.001"
+              /></label>
+            </div>
+            <div class="axis-buttons">
+              <span>X</span><button class="btn" data-move="x,-1">−X</button
+              ><button class="btn" data-move="x,1">+X</button><span>Y</span
+              ><button class="btn" data-move="y,-1">−Y</button
+              ><button class="btn" data-move="y,1">+Y</button><span>Z</span
+              ><button class="btn" data-move="z,-1">−Z</button
+              ><button class="btn" data-move="z,1">+Z</button>
+            </div>
+            <button class="btn wide" id="btnResetPos">
+              Reiniciar posición
+            </button>
+          </fieldset>
+        </details>
+        <div class="export-block">
+          <button class="btn primary wide" id="btnSave" data-model disabled>
+            Descargar STL visible ↓
+          </button>
+          <p class="note">
+            Incluye rotación y traslación. El archivo original permanece
+            intacto. STL no define unidades; aquí se asumen mm.
+          </p>
+        </div>
+        <footer class="credits">
+          IBERO · Fabricación digital<br /><a
+            href="https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification"
+            target="_blank"
+            rel="noopener"
+            >Fast Quadric Mesh Simplification</a
+          >
+          · <a href="vendor/fast-quadric/NOTICE.md">Créditos y licencias</a>
+        </footer>
+      </aside>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>
