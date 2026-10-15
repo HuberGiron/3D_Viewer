@@ -62,6 +62,11 @@ try {
     }
   });
   await page.goto("http://127.0.0.1:8787");
+  assert.equal(await page.locator("details[open]").count(), 0);
+  assert.equal(await page.locator("header #btnSave").count(), 1);
+  assert(await page.locator("#exportFormat").isDisabled());
+  const downloadBounds = await page.locator(".download-actions").boundingBox();
+  assert(Math.abs(downloadBounds.x + downloadBounds.width / 2 - 1366 / 2) < 1);
   const idle = () =>
     page.waitForFunction(() => document.getElementById("busy").hidden, {
       timeout: 90000,
@@ -116,10 +121,28 @@ try {
   await download.saveAs(join(temp, "export.stl"));
   const exported = await readFile(join(temp, "export.stl"));
   assert.equal(exported.length, 84 + reduced * 50);
+  await page.locator("#exportFormat").selectOption("obj");
+  const objEvent = page.waitForEvent("download");
+  await page.click("#btnSave");
+  const obj = await objEvent;
+  assert(obj.suggestedFilename().endsWith("_optimizado.obj"));
+  await obj.saveAs(join(temp, "export.obj"));
+  const objText = await readFile(join(temp, "export.obj"), "utf8");
+  const objVertices = objText
+    .split("\n")
+    .filter((line) => line.startsWith("v "));
+  const objFaces = objText.split("\n").filter((line) => line.startsWith("f "));
+  assert.equal(objFaces.length, reduced);
+  assert(objVertices.length > 0);
+  for (const face of objFaces)
+    for (const index of face.slice(2).split(" ").map(Number))
+      assert(index >= 1 && index <= objVertices.length);
+  await page.locator("#exportFormat").selectOption("stl");
   await upload("export.stl", exported);
   assert.equal(await triangles(), reduced);
   assert.equal(await page.locator("#fDims").textContent(), dimensions);
   assert.equal(await page.locator("#fCenter").textContent(), center);
+  await page.locator("details").first().locator("summary").click();
   await page.click("#chkCenterLoad");
   await upload("offset.stl", ascii);
   assert.equal(await page.locator("#fCenter").textContent(), "0 , 0 , 0");
@@ -164,13 +187,31 @@ try {
   await upload("latest.stl", ascii);
   assert.equal(await triangles(), 1);
   assert.equal(await page.locator("#fName").textContent(), "latest.stl");
-  await page.setViewportSize({ width: 360, height: 800 });
-  assert.equal(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth > innerWidth,
-    ),
-    false,
-  );
+  for (const width of [1440, 1024, 900, 800, 720, 390, 360]) {
+    await page.setViewportSize({ width, height: 800 });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+      false,
+    );
+    const [brand, download, actions] = await Promise.all(
+      [".brand", ".download-actions", ".actions"].map((selector) =>
+        page.locator(selector).boundingBox(),
+      ),
+    );
+    assert(Math.abs(download.x + download.width / 2 - width / 2) < 1);
+    const overlaps = (a, b) =>
+      a.x < b.x + b.width &&
+      b.x < a.x + a.width &&
+      a.y < b.y + b.height &&
+      b.y < a.y + a.height;
+    assert(
+      !overlaps(brand, download) &&
+        !overlaps(download, actions) &&
+        !overlaps(brand, actions),
+    );
+  }
   assert.deepEqual(errors, []);
   console.log(
     "PASS: ASCII/binary, invalid preservation, idle rendering, simplification, comparison, transformed export/reload, centering, cancellation, large model, repeat/restore, latest load, mobile.",

@@ -119,6 +119,14 @@ self.onmessage = async ({ data }) => {
         [result.positions.buffer, result.indices.buffer],
       );
     } else if (data.type === "export") {
+      if (data.format === "obj") {
+        stage("Preparando OBJ con las transformaciones…");
+        const blob = utils.exportOBJ(data.positions, data.indices, data.matrix);
+        self.postMessage({ blob });
+        return;
+      }
+      if (data.format && data.format !== "stl")
+        throw new Error("Formato de descarga no válido.");
       stage("Preparando STL binario con las transformaciones…");
       const buffer = utils.exportBinarySTL(
         data.positions,

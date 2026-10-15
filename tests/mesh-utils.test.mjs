@@ -6,6 +6,7 @@ import {
   encodeMZ3,
   decodeMZ3,
   exportBinarySTL,
+  exportOBJ,
   binarySTLSize,
 } from "../mesh-utils.js";
 import { STLLoader } from "../vendor/three/addons/loaders/STLLoader.js";
@@ -22,6 +23,41 @@ test("exact welding shares edges, canonicalizes signed zero, preserves winding",
   const almost = square.slice();
   almost[9] = 1e-8;
   assert.equal(weldVertices(almost).positions.length, 15);
+});
+test("OBJ export preserves faces, 1-based indices and transformed coordinates", async () => {
+  const matrix = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 10, 20, 30, 1];
+  for (const input of [
+    { positions: square, indices: null },
+    weldVertices(square),
+  ]) {
+    const blob = exportOBJ(input.positions, input.indices, matrix);
+    const lines = (await blob.text()).trim().split("\n");
+    const vertices = lines
+      .filter((line) => line.startsWith("v "))
+      .map((line) => line.slice(2).split(" ").map(Number));
+    const faces = lines
+      .filter((line) => line.startsWith("f "))
+      .map((line) => line.slice(2).split(" ").map(Number));
+    assert.equal(faces.length, 2);
+    assert.deepEqual(
+      faces[0].map((index) => vertices[index - 1]),
+      [
+        [10, 20, 30],
+        [10, 21, 30],
+        [9, 21, 30],
+      ],
+    );
+    assert.deepEqual(
+      faces[1].map((index) => vertices[index - 1]),
+      [
+        [10, 20, 30],
+        [9, 21, 30],
+        [9, 20, 30],
+      ],
+    );
+    assert.equal(vertices.length, input.positions.length / 3);
+  }
+  assert.throws(() => exportOBJ(square, null, []));
 });
 test("welding filters duplicate and collinear zero-area triangles", () => {
   const positions = new Float32Array([

@@ -9,7 +9,7 @@ https://github.com/neurolabusc/simplifyjs
 Commit: 9a535a06aa3949f43195485c6991d7485369d28a
 
 El visor intercambia geometría mediante MZ3 binario (temporal en memoria).
-No envía archivos a servidores. El formato de entrada y descarga del usuario es STL.
+No envía archivos a servidores. El formato de entrada es STL y la descarga puede ser STL u OBJ.
 
 Licencias incluidas: LICENSE.md (algoritmo), PORT-LICENSE (distribución del port).
 Three.js 0.160.0: ../three/LICENSE (MIT). Se conserva la versión del visor original;

@@ -59,13 +59,31 @@ button:hover:enabled {
 }
 .topbar {
   height: 80px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   justify-content: space-between;
   padding: 14px 26px;
   border-bottom: 1px solid var(--line);
   gap: 16px;
   background: #101722;
+}
+.actions {
+  justify-self: end;
+}
+.download-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.download-actions .btn {
+  min-width: 190px;
+  box-shadow: 0 3px 18px #ed174c22;
+}
+.download-actions select {
+  padding: 9px 8px;
+  max-width: 80px;
 }
 .brand,
 .actions,
@@ -510,11 +528,6 @@ details .row {
   font-size: 10px;
   color: var(--muted);
 }
-.export-block {
-  border-top: 1px solid var(--line);
-  padding-top: 16px;
-  margin-top: 20px;
-}
 .credits {
   text-align: center;
   color: #788da6;
@@ -538,6 +551,11 @@ details .row {
   }
   .hintbar {
     font-size: 11px;
+  }
+}
+@media (max-width: 1200px) {
+  .local-badge {
+    display: none;
   }
 }
 @media (max-width: 1000px) {
@@ -568,13 +586,33 @@ details .row {
     display: none;
   }
 }
+@media (max-width: 850px) {
+  .topbar {
+    height: 132px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+  .download-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .container {
+    height: calc(100dvh - 132px);
+  }
+}
 @media (max-width: 720px) {
   .topbar {
     height: auto;
     min-height: 76px;
+    grid-template-columns: minmax(0, 1fr);
     padding: 12px 14px;
-    flex-wrap: wrap;
     gap: 10px;
+  }
+  .brand {
+    justify-self: center;
+  }
+  .download-actions {
+    grid-column: 1;
   }
   .brand img {
     width: 72px;
@@ -587,6 +625,8 @@ details .row {
   }
   .actions {
     gap: 6px;
+    grid-row: 3;
+    justify-self: center;
   }
   .actions .btn {
     font-size: 11px;

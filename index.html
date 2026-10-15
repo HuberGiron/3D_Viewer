@@ -27,6 +27,24 @@
           <span class="eyebrow">EXPLORA · OPTIMIZA · FABRICA</span>
         </div>
       </div>
+      <div
+        class="download-actions"
+        role="group"
+        aria-label="Descargar modelo visible"
+      >
+        <select
+          id="exportFormat"
+          aria-label="Formato de descarga"
+          data-model
+          disabled
+        >
+          <option value="stl">STL</option>
+          <option value="obj">OBJ</option>
+        </select>
+        <button id="btnSave" class="btn primary" data-model disabled>
+          Descargar modelo ↓
+        </button>
+      </div>
       <div class="actions">
         <span class="local-badge">● Procesamiento local</span
         ><button id="btnDemo" class="btn">Abrir ejemplo</button
@@ -165,7 +183,7 @@
             dimensiones; el objetivo puede no alcanzarse.
           </p>
         </section>
-        <details class="controls-block" open>
+        <details class="controls-block">
           <summary>Visualización</summary>
           <div class="options-grid">
             <label
@@ -248,15 +266,10 @@
             </button>
           </fieldset>
         </details>
-        <div class="export-block">
-          <button class="btn primary wide" id="btnSave" data-model disabled>
-            Descargar STL visible ↓
-          </button>
-          <p class="note">
-            Incluye rotación y traslación. El archivo original permanece
-            intacto. STL no define unidades; aquí se asumen mm.
-          </p>
-        </div>
+        <p class="note">
+          Descarga el modelo visible desde la barra superior en STL u OBJ, con
+          rotación y traslación aplicadas. Unidades asumidas: mm.
+        </p>
         <footer class="credits">
           IBERO · Fabricación digital<br /><a
             href="https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification"
