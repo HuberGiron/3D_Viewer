@@ -208,3 +208,49 @@ export function exportBinarySTL(positions, indices, matrix) {
   }
   return buffer;
 }
+
+// OBJ has independent position indices, so both indexed optimized geometry and
+// the original STL triangle soup can be exported without changing their faces.
+// Encode in chunks to avoid retaining one huge JavaScript string for heavy meshes.
+export function exportOBJ(positions, indices, matrix) {
+  validatePositions(positions, indices);
+  if (matrix.length !== 16 || !matrix.every(Number.isFinite))
+    throw new Error("Transformación no válida.");
+  const chunks = [],
+    encoder = new TextEncoder();
+  let text = "# IBERO STL Viewer - OBJ\n# Units assumed: mm\no modelo\n",
+    rows = 0;
+  const append = (line) => {
+    text += line;
+    if (++rows === 4096) {
+      chunks.push(encoder.encode(text));
+      text = "";
+      rows = 0;
+    }
+  };
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i],
+      y = positions[i + 1],
+      z = positions[i + 2];
+    const transformed = [0, 1, 2].map(
+      (axis) =>
+        matrix[axis] * x +
+        matrix[4 + axis] * y +
+        matrix[8 + axis] * z +
+        matrix[12 + axis],
+    );
+    if (!transformed.every(Number.isFinite))
+      throw new Error("La transformación excede el rango OBJ.");
+    append(`v ${transformed.join(" ")}\n`);
+  }
+  const count = triangleCount(positions, indices);
+  for (let face = 0; face < count; face++) {
+    const offset = face * 3;
+    const a = (indices ? indices[offset] : offset) + 1;
+    const b = (indices ? indices[offset + 1] : offset + 1) + 1;
+    const c = (indices ? indices[offset + 2] : offset + 2) + 1;
+    append(`f ${a} ${b} ${c}\n`);
+  }
+  if (text) chunks.push(encoder.encode(text));
+  return new Blob(chunks, { type: "text/plain;charset=utf-8" });
+}

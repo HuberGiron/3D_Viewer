@@ -38,8 +38,15 @@ origen; no se requieren COOP/COEP, SharedArrayBuffer ni servicios externos.
 3. Alternar **Original / Optimizado** para revisar el resultado desde la misma
    cámara, con las mismas transformaciones. Se muestran los conteos reales y los
    tamaños de ambos STL binarios. **Restaurar original** descarta la versión reducida.
-4. **Descargar STL original/optimizado** exporta la geometría que esté visible,
+4. En el centro de la barra superior, elegir **STL** u **OBJ** y pulsar
+   **Descargar original/optimizado**. Exporta la geometría que esté visible,
    con rotación y traslación aplicadas. El archivo de entrada nunca se sobrescribe.
+
+Los paneles **Visualización** y **Transformar modelo** inician cerrados.
+OBJ se exporta como malla de vértices y caras, sin materiales ni texturas, en un
+trabajador y por bloques para evitar una única cadena de texto enorme. El formato
+de entrada del visor sigue siendo STL. El tamaño estimado del panel corresponde a
+STL binario; OBJ es texto y su tamaño puede ser mayor.
 
 Cada optimización parte del original, incluso si ya hay una previsualización reducida.
 El objetivo es aproximado: las restricciones del algoritmo pueden impedir alcanzarlo,

@@ -161,7 +161,7 @@ function updateUI() {
   $("meshBadge").textContent =
     `${isOriginal ? "ORIGINAL" : "OPTIMIZADO"} · ${number(count)} TRIÁNGULOS`;
   $("btnSave").textContent =
-    `Descargar STL ${isOriginal ? "original" : "optimizado"} ↓`;
+    `Descargar ${isOriginal ? "original" : "optimizado"} ↓`;
   $("btnOriginal").classList.toggle("active", isOriginal);
   $("btnOptimized").classList.toggle("active", !isOriginal);
   $("btnOriginal").setAttribute("aria-pressed", String(isOriginal));
@@ -512,18 +512,22 @@ $("btnSave").addEventListener("click", async () => {
     const positions = mesh.geometry.attributes.position.array.slice(),
       indices = mesh.geometry.index?.array.slice() ?? null;
     const suffix = mesh.geometry === optimized ? "_optimizado" : "_editado";
-    const filename = baseName() + suffix + ".stl";
+    const format = $("exportFormat").value;
+    const filename = baseName() + suffix + "." + format;
     const result = await runJob(
       {
         type: "export",
+        format,
         positions,
         indices,
         matrix: mesh.matrixWorld.elements.slice(),
       },
       [positions.buffer, ...(indices ? [indices.buffer] : [])],
     );
-    download(new Blob([result.buffer], { type: "model/stl" }), filename);
-    status(`Descarga lista: ${filename} · ${bytes(result.buffer.byteLength)}.`);
+    const blob =
+      result.blob ?? new Blob([result.buffer], { type: "model/stl" });
+    download(blob, filename);
+    status(`Descarga lista: ${filename} · ${bytes(blob.size)}.`);
   } catch (error) {
     showError(error);
   }
